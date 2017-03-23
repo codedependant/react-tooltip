@@ -687,17 +687,15 @@ var ReactTooltip = (0, _staticMethods2.default)(_class = (0, _windowListener2.de
       if (isEmptyTip || disable) return; // if the tooltip is empty, disable the tooltip
       var updateState = function updateState() {
         if (Array.isArray(placeholder) && placeholder.length > 0 || placeholder) {
-          (function () {
-            var isInvisible = !_this6.state.show;
-            _this6.setState({
-              currentEvent: e,
-              currentTarget: eventTarget,
-              show: true
-            }, function () {
-              _this6.updatePosition();
-              if (isInvisible && afterShow) afterShow();
-            });
-          })();
+          var isInvisible = !_this6.state.show;
+          _this6.setState({
+            currentEvent: e,
+            currentTarget: eventTarget,
+            show: true
+          }, function () {
+            _this6.updatePosition();
+            if (isInvisible && afterShow) afterShow();
+          });
         }
       };
 
@@ -1229,6 +1227,22 @@ var calculateOffset = function calculateOffset(offset) {
   return { extraOffset_X: extraOffset_X, extraOffset_Y: extraOffset_Y };
 };
 
+// Get the first scrollable parent if one exists
+var getScrollParent = function getScrollParent(element) {
+  if (!element) return;
+  var style = window.getComputedStyle(element);
+
+  var overflowRegex = /(auto|scroll)/;
+
+  console.log(style.overflow + style.overflowY + style.overflowX);
+
+  if (overflowRegex.test(style.overflow + style.overflowY + style.overflowX)) {
+    return element;
+  } else {
+    return getScrollParent(element.parentElement);
+  }
+};
+
 // Get the offset of the parent elements
 var getParent = function getParent(currentTarget) {
   var currentParent = currentTarget;
@@ -1239,6 +1253,12 @@ var getParent = function getParent(currentTarget) {
 
   var parentTop = currentParent && currentParent.getBoundingClientRect().top || 0;
   var parentLeft = currentParent && currentParent.getBoundingClientRect().left || 0;
+
+  var scrollParent = getScrollParent(currentTarget);
+  if (scrollParent) {
+    parentTop = parentTop - scrollParent.scrollTop;
+    parentLeft = parentLeft - scrollParent.scrollLeft;
+  }
 
   return { parentTop: parentTop, parentLeft: parentLeft };
 };
