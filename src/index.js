@@ -20,6 +20,30 @@ import nodeListToArray from './utils/nodeListToArray'
 /* CSS */
 import cssStyle from './style'
 
+class Portal extends Component {
+  static propTypes = {
+    children: PropTypes.any
+  }
+
+  render () {
+    return null
+  }
+
+  componentDidMount () {
+    this.portalElement = document.createElement('div')
+    document.body.appendChild(this.portalElement)
+    this.componentDidUpdate()
+  }
+
+  componentWillUnmount () {
+    document.body.removeChild(this.portalElement)
+  }
+
+  componentDidUpdate () {
+    ReactDOM.render(<div {...this.props}>{this.props.children}</div>, this.portalElement)
+  }
+}
+
 @staticMethods @windowListener @customEvent @isCapture @getEffect
 class ReactTooltip extends Component {
 
@@ -380,7 +404,7 @@ class ReactTooltip extends Component {
   // Calculation the position
   updatePosition () {
     const {currentEvent, currentTarget, place, effect, offset} = this.state
-    const node = ReactDOM.findDOMNode(this)
+    const node = this.refs.wrapper
     const result = getPosition(currentEvent, currentTarget, node, place, effect, offset)
 
     if (result.isNewState) {
@@ -439,16 +463,16 @@ class ReactTooltip extends Component {
 
     if (html) {
       return (
-        <wrapper className={`${tooltipClass} ${extraClass}`}
+        <Portal><wrapper ref='wrapper' className={`${tooltipClass} ${extraClass}`}
           {...ariaProps}
           data-id='tooltip'
-          dangerouslySetInnerHTML={{__html: placeholder}}></wrapper>
+          dangerouslySetInnerHTML={{__html: placeholder}}></wrapper></Portal>
       )
     } else {
       return (
-        <wrapper className={`${tooltipClass} ${extraClass}`}
+        <Portal><wrapper ref='wrapper' className={`${tooltipClass} ${extraClass}`}
           {...ariaProps}
-          data-id='tooltip'>{placeholder}</wrapper>
+          data-id='tooltip'>{placeholder}</wrapper></Portal>
       )
     }
   }
