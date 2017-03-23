@@ -270,6 +270,22 @@ const calculateOffset = (offset) => {
   return {extraOffset_X, extraOffset_Y}
 }
 
+// Get the first scrollable parent if one exists
+var getScrollParent = function getScrollParent(element) {
+  if(!element) return;
+  var style = getComputedStyle(element);
+
+  var overflowRegex = /(auto|scroll)/;
+
+  console.log(style.overflow + style.overflowY + style.overflowX);
+
+  if (overflowRegex.test(style.overflow + style.overflowY + style.overflowX)) {
+    return element;
+  } else {
+    return getScrollParent(element.parentElement);
+  }
+}
+
 // Get the offset of the parent elements
 const getParent = (currentTarget) => {
   let currentParent = currentTarget
@@ -278,8 +294,14 @@ const getParent = (currentTarget) => {
     currentParent = currentParent.parentElement
   }
 
-  const parentTop = currentParent && currentParent.getBoundingClientRect().top || 0
-  const parentLeft = currentParent && currentParent.getBoundingClientRect().left || 0
+  let parentTop = currentParent && currentParent.getBoundingClientRect().top || 0
+  let parentLeft = currentParent && currentParent.getBoundingClientRect().left || 0
 
+  let scrollParent = getScrollParent(currentTarget);
+  if(scrollParent) {
+    parentTop = parentTop - scrollParent.scrollTop;
+    parentLeft = parentLeft - scrollParent.scrollLeft;
+  }
+  
   return {parentTop, parentLeft}
 }
