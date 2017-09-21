@@ -19,6 +19,10 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _propTypes = require('prop-types');
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
 var _reactDom = require('react-dom');
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
@@ -46,6 +50,10 @@ var _isCapture2 = _interopRequireDefault(_isCapture);
 var _getEffect = require('./decorators/getEffect');
 
 var _getEffect2 = _interopRequireDefault(_getEffect);
+
+var _trackRemoval = require('./decorators/trackRemoval');
+
+var _trackRemoval2 = _interopRequireDefault(_trackRemoval);
 
 var _getPosition = require('./utils/getPosition');
 
@@ -112,10 +120,10 @@ var Portal = (_temp = _class = function (_Component) {
 
   return Portal;
 }(_react.Component), _class.propTypes = {
-  children: _react.PropTypes.any
+  children: _propTypes2.default.any
 }, _temp);
 
-var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.default)(_class2 = (0, _customEvent2.default)(_class2 = (0, _isCapture2.default)(_class2 = (0, _getEffect2.default)(_class2 = (_temp2 = _class3 = function (_Component2) {
+var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.default)(_class2 = (0, _customEvent2.default)(_class2 = (0, _isCapture2.default)(_class2 = (0, _getEffect2.default)(_class2 = (0, _trackRemoval2.default)(_class2 = (_temp2 = _class3 = function (_Component2) {
   _inherits(ReactTooltip, _Component2);
 
   function ReactTooltip(props) {
@@ -265,6 +273,9 @@ var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.d
         window.removeEventListener(globalEventOff, this.hideTooltip);
         window.addEventListener(globalEventOff, this.hideTooltip, false);
       }
+
+      // Track removal of targetArray elements from DOM
+      this.bindRemovalTracker();
     }
 
     /**
@@ -287,6 +298,7 @@ var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.d
       });
 
       if (globalEventOff) window.removeEventListener(globalEventOff, this.hideTooltip);
+      this.unbindRemovalTracker();
     }
 
     /**
@@ -346,7 +358,7 @@ var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.d
       // If it is focus event or called by ReactTooltip.show, switch to `solid` effect
       var switchToSolid = e instanceof window.FocusEvent || isGlobalCall;
 
-      // if it need to skip adding hide listener to scroll
+      // if it needs to skip adding hide listener to scroll
       var scrollHide = true;
       if (e.currentTarget.getAttribute('data-scroll-hide')) {
         scrollHide = e.currentTarget.getAttribute('data-scroll-hide') === 'true';
@@ -562,14 +574,16 @@ var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.d
 
       var tooltipClass = (0, _classnames2.default)('__react_component_tooltip', { 'show': this.state.show && !disable && !isEmptyTip }, { 'border': this.state.border }, { 'place-top': this.state.place === 'top' }, { 'place-bottom': this.state.place === 'bottom' }, { 'place-left': this.state.place === 'left' }, { 'place-right': this.state.place === 'right' }, { 'type-dark': this.state.type === 'dark' }, { 'type-success': this.state.type === 'success' }, { 'type-warning': this.state.type === 'warning' }, { 'type-error': this.state.type === 'error' }, { 'type-info': this.state.type === 'info' }, { 'type-light': this.state.type === 'light' });
 
-      var wrapper = ReactTooltip.supportedWrappers[this.props.wrapper];
-      if (!wrapper) wrapper = ReactTooltip.supportedWrappers['div'];
+      var Wrapper = this.props.wrapper;
+      if (ReactTooltip.supportedWrappers.indexOf(Wrapper) < 0) {
+        Wrapper = ReactTooltip.defaultProps.wrapper;
+      }
 
       if (html) {
         return _react2.default.createElement(
           Portal,
           null,
-          _react2.default.createElement('wrapper', _extends({ ref: 'wrapper', className: tooltipClass + ' ' + extraClass
+          _react2.default.createElement(Wrapper, _extends({ className: tooltipClass + ' ' + extraClass
           }, ariaProps, {
             'data-id': 'tooltip',
             dangerouslySetInnerHTML: { __html: placeholder } }))
@@ -579,8 +593,8 @@ var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.d
           Portal,
           null,
           _react2.default.createElement(
-            'wrapper',
-            _extends({ ref: 'wrapper', className: tooltipClass + ' ' + extraClass
+            Wrapper,
+            _extends({ className: tooltipClass + ' ' + extraClass
             }, ariaProps, {
               'data-id': 'tooltip' }),
             placeholder
@@ -592,40 +606,37 @@ var ReactTooltip = (0, _staticMethods2.default)(_class2 = (0, _windowListener2.d
 
   return ReactTooltip;
 }(_react.Component), _class3.propTypes = {
-  children: _react.PropTypes.any,
-  place: _react.PropTypes.string,
-  type: _react.PropTypes.string,
-  effect: _react.PropTypes.string,
-  offset: _react.PropTypes.object,
-  multiline: _react.PropTypes.bool,
-  border: _react.PropTypes.bool,
-  insecure: _react.PropTypes.bool,
-  class: _react.PropTypes.string,
-  className: _react.PropTypes.string,
-  id: _react.PropTypes.string,
-  html: _react.PropTypes.bool,
-  delayHide: _react.PropTypes.number,
-  delayShow: _react.PropTypes.number,
-  event: _react.PropTypes.string,
-  eventOff: _react.PropTypes.string,
-  watchWindow: _react.PropTypes.bool,
-  isCapture: _react.PropTypes.bool,
-  globalEventOff: _react.PropTypes.string,
-  getContent: _react.PropTypes.any,
-  afterShow: _react.PropTypes.func,
-  afterHide: _react.PropTypes.func,
-  disable: _react.PropTypes.bool,
-  scrollHide: _react.PropTypes.bool,
-  resizeHide: _react.PropTypes.bool,
-  wrapper: _react.PropTypes.string
+  children: _propTypes2.default.any,
+  place: _propTypes2.default.string,
+  type: _propTypes2.default.string,
+  effect: _propTypes2.default.string,
+  offset: _propTypes2.default.object,
+  multiline: _propTypes2.default.bool,
+  border: _propTypes2.default.bool,
+  insecure: _propTypes2.default.bool,
+  class: _propTypes2.default.string,
+  className: _propTypes2.default.string,
+  id: _propTypes2.default.string,
+  html: _propTypes2.default.bool,
+  delayHide: _propTypes2.default.number,
+  delayShow: _propTypes2.default.number,
+  event: _propTypes2.default.string,
+  eventOff: _propTypes2.default.string,
+  watchWindow: _propTypes2.default.bool,
+  isCapture: _propTypes2.default.bool,
+  globalEventOff: _propTypes2.default.string,
+  getContent: _propTypes2.default.any,
+  afterShow: _propTypes2.default.func,
+  afterHide: _propTypes2.default.func,
+  disable: _propTypes2.default.bool,
+  scrollHide: _propTypes2.default.bool,
+  resizeHide: _propTypes2.default.bool,
+  wrapper: _propTypes2.default.string
 }, _class3.defaultProps = {
   insecure: true,
   resizeHide: true,
   wrapper: 'div'
-}, _class3.supportedWrappers = {
-  'div': _react2.default.DOM.div,
-  'span': _react2.default.DOM.span
-}, _temp2)) || _class2) || _class2) || _class2) || _class2) || _class2;
+}, _class3.supportedWrappers = ['div', 'span'], _temp2)) || _class2) || _class2) || _class2) || _class2) || _class2) || _class2;
 
 /* export default not fit for standalone, it will exports {default:...} */
 

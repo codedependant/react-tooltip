@@ -1,6 +1,7 @@
 'use strict'
 
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
+import PropTypes from 'prop-types'
 import ReactDOM from 'react-dom'
 import classname from 'classnames'
 
@@ -10,6 +11,7 @@ import windowListener from './decorators/windowListener'
 import customEvent from './decorators/customEvent'
 import isCapture from './decorators/isCapture'
 import getEffect from './decorators/getEffect'
+import trackRemoval from './decorators/trackRemoval'
 
 /* Utils */
 import getPosition from './utils/getPosition'
@@ -44,7 +46,12 @@ class Portal extends Component {
   }
 }
 
-@staticMethods @windowListener @customEvent @isCapture @getEffect
+@staticMethods
+@windowListener
+@customEvent
+@isCapture
+@getEffect
+@trackRemoval
 class ReactTooltip extends Component {
 
   static propTypes = {
@@ -82,10 +89,7 @@ class ReactTooltip extends Component {
     wrapper: 'div'
   };
 
-  static supportedWrappers = {
-    'div': React.DOM.div,
-    'span': React.DOM.span
-  };
+  static supportedWrappers = ['div', 'span'];
 
   constructor (props) {
     super(props)
@@ -214,6 +218,9 @@ class ReactTooltip extends Component {
       window.removeEventListener(globalEventOff, this.hideTooltip)
       window.addEventListener(globalEventOff, this.hideTooltip, false)
     }
+
+    // Track removal of targetArray elements from DOM
+    this.bindRemovalTracker()
   }
 
   /**
@@ -228,6 +235,7 @@ class ReactTooltip extends Component {
     })
 
     if (globalEventOff) window.removeEventListener(globalEventOff, this.hideTooltip)
+    this.unbindRemovalTracker()
   }
 
   /**
@@ -273,7 +281,7 @@ class ReactTooltip extends Component {
     // If it is focus event or called by ReactTooltip.show, switch to `solid` effect
     const switchToSolid = e instanceof window.FocusEvent || isGlobalCall
 
-    // if it need to skip adding hide listener to scroll
+    // if it needs to skip adding hide listener to scroll
     let scrollHide = true
     if (e.currentTarget.getAttribute('data-scroll-hide')) {
       scrollHide = e.currentTarget.getAttribute('data-scroll-hide') === 'true'
@@ -458,21 +466,27 @@ class ReactTooltip extends Component {
       {'type-light': this.state.type === 'light'}
     )
 
-    let wrapper = ReactTooltip.supportedWrappers[this.props.wrapper]
-    if (!wrapper) wrapper = ReactTooltip.supportedWrappers['div']
+    let Wrapper = this.props.wrapper
+    if (ReactTooltip.supportedWrappers.indexOf(Wrapper) < 0) {
+      Wrapper = ReactTooltip.defaultProps.wrapper
+    }
 
     if (html) {
       return (
-        <Portal><wrapper ref='wrapper' className={`${tooltipClass} ${extraClass}`}
-          {...ariaProps}
-          data-id='tooltip'
-          dangerouslySetInnerHTML={{__html: placeholder}}></wrapper></Portal>
+        <Portal>
+          <Wrapper className={`${tooltipClass} ${extraClass}`}
+                   {...ariaProps}
+                   data-id='tooltip'
+                   dangerouslySetInnerHTML={{__html: placeholder}}/>
+       </Portal>
       )
     } else {
       return (
-        <Portal><wrapper ref='wrapper' className={`${tooltipClass} ${extraClass}`}
-          {...ariaProps}
-          data-id='tooltip'>{placeholder}</wrapper></Portal>
+        <Portal>
+          <Wrapper className={`${tooltipClass} ${extraClass}`}
+                   {...ariaProps}
+                   data-id='tooltip'>{placeholder}</Wrapper>
+        </Portal>
       )
     }
   }
